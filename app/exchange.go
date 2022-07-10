@@ -6,11 +6,11 @@ import (
 	"time"
 )
 
-type OrderResponse int
+type OrderResponse string
 
 const (
-	ResponseFilled = 0
-	ResponseQueued = 1
+	ResponseFilled = "filled"
+	ResponseQueued = "queued"
 )
 
 type Exchange struct {
@@ -21,7 +21,11 @@ type Exchange struct {
 }
 
 func NewExchange() *Exchange {
-	return &Exchange{}
+	return &Exchange{
+		engine:             nil,
+		pendingOrderSlices: make(map[*models.OrderSlice]int),
+		currentTime:        0,
+	}
 }
 
 func (exch *Exchange) SetEngine(e *Engine) {
@@ -30,7 +34,7 @@ func (exch *Exchange) SetEngine(e *Engine) {
 
 func (exch *Exchange) ReceiveEvent(event []string) {
 	evt := parser.ParseEvent(event)
-	exch.updateState(evt, event[0])
+	exch.updateStateOnEvent(evt, event[0])
 	for slice := range exch.pendingOrderSlices {
 		if exch.meetFillCriteria(slice) {
 			exch.engine.OrderSliceFilled(slice, true)
@@ -39,7 +43,7 @@ func (exch *Exchange) ReceiveEvent(event []string) {
 	}
 }
 
-func (exch *Exchange) updateState(evt interface{}, eventType string) {
+func (exch *Exchange) updateStateOnEvent(evt interface{}, eventType string) {
 	if eventType == "T" {
 		exch.currentTime = evt.(*models.Trade).Time
 	} else {
