@@ -7,12 +7,14 @@ import (
 	"testing"
 )
 
-func makeFIXMsg(buy, quantity, percentage string) string {
-	res := "54=" + buy + "; 40=1; 38=" + quantity + "; 6404=" + percentage
-	return res
-}
-func TestFollow(t *testing.T) {
-	f, err := os.Open("follow.csv")
+var (
+	exchange *app.Exchange
+	algo     app.Algorithm
+	engine   *app.Engine
+)
+
+func setup(t *testing.T, dataset string) [][]string {
+	f, err := os.Open("datasets/" + dataset)
 	if err != nil {
 		t.Error(err)
 	}
@@ -21,10 +23,20 @@ func TestFollow(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	exchange := app.NewExchange()
-	algo := app.NewPOVAlgorithm()
-	engine := app.NewEngine(exchange, algo)
+	exchange = app.NewExchange()
+	algo = app.NewPOVAlgorithm()
+	engine = app.NewEngine(exchange, algo)
 	exchange.SetEngine(engine)
+	return lines
+}
+
+func makeFIXMsg(buy, quantity, percentage string) string {
+	res := "54=" + buy + "; 40=1; 38=" + quantity + "; 6404=" + percentage
+	return res
+}
+
+func TestFollow(t *testing.T) {
+	lines := setup(t, "follow.csv")
 
 	order := makeFIXMsg("1", "1000", "10")
 	engine.Order(order)
@@ -36,19 +48,7 @@ func TestFollow(t *testing.T) {
 }
 
 func TestBehindMin(t *testing.T) {
-	f, err := os.Open("behindmin.csv")
-	if err != nil {
-		t.Error(err)
-	}
-	r := csv.NewReader(f)
-	lines, err := r.ReadAll()
-	if err != nil {
-		t.Error(err)
-	}
-	exchange := app.NewExchange()
-	algo := app.NewPOVAlgorithm()
-	engine := app.NewEngine(exchange, algo)
-	exchange.SetEngine(engine)
+	lines := setup(t, "behindmin.csv")
 
 	order := makeFIXMsg("1", "1000", "10")
 	engine.Order(order)
@@ -63,20 +63,7 @@ func TestBehindMin(t *testing.T) {
 }
 
 func TestBreachMax(t *testing.T) {
-	f, err := os.Open("breachmax.csv")
-	if err != nil {
-		t.Error(err)
-	}
-	r := csv.NewReader(f)
-	lines, err := r.ReadAll()
-	if err != nil {
-		t.Error(err)
-	}
-	exchange := app.NewExchange()
-	algo := app.NewPOVAlgorithm()
-	engine := app.NewEngine(exchange, algo)
-	exchange.SetEngine(engine)
-
+	lines := setup(t, "breachmax.csv")
 	order := makeFIXMsg("1", "1000", "10")
 	engine.Order(order)
 
