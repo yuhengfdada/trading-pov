@@ -6,7 +6,7 @@ import (
 )
 
 type PriceQuantity struct {
-	Price    int
+	Price    float64
 	Quantity int
 }
 type Trade struct {
@@ -20,7 +20,7 @@ type Quote struct {
 	Asks []PriceQuantity
 }
 
-func NewPriceQuantity(price, quantity int) PriceQuantity {
+func NewPriceQuantity(price float64, quantity int) PriceQuantity {
 	return PriceQuantity{
 		Price:    price,
 		Quantity: quantity,
@@ -29,7 +29,7 @@ func NewPriceQuantity(price, quantity int) PriceQuantity {
 
 func NewTrade(time, price, quantity string) *Trade {
 	t, _ := strconv.Atoi(time)
-	p, _ := strconv.Atoi(price)
+	p, _ := strconv.ParseFloat(price, 64)
 	q, _ := strconv.Atoi(quantity)
 	return &Trade{
 		Time: t,
@@ -50,7 +50,7 @@ func NewQuote(time, bids, asks string) *Quote {
 func FillPQs(arr *[]PriceQuantity, str string) {
 	nums := strings.Split(str, " ")
 	for i := 0; i < len(nums); i += 2 {
-		p, _ := strconv.Atoi(nums[i])
+		p, _ := strconv.ParseFloat(nums[i], 64)
 		q, _ := strconv.Atoi(nums[i+1])
 		*arr = append(*arr, NewPriceQuantity(p, q))
 	}

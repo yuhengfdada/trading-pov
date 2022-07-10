@@ -11,5 +11,5 @@ type Order struct {
 type OrderSlice struct {
 	TimeStamp int
 	Quantity  int
-	Price     int
+	Price     float64
 }

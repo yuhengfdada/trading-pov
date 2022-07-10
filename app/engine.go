@@ -11,7 +11,7 @@ type Engine struct {
 	algo               Algorithm
 	order              *models.Order
 	pendingOrderSlices map[*models.OrderSlice]int // TODO: Add pending slices when creating orders
-	pendingOrderPQView map[int]int
+	pendingOrderPQView map[float64]int
 	volume             int
 	currentTime        int
 	currentQuote       *models.Quote
@@ -22,7 +22,8 @@ func NewEngine(exchange *Exchange, algo Algorithm) *Engine {
 		exchange:           exchange,
 		algo:               algo,
 		pendingOrderSlices: make(map[*models.OrderSlice]int),
-		pendingOrderPQView: make(map[int]int),
+		pendingOrderPQView: make(map[float64]int),
+		volume:             0,
 	}
 }
 
@@ -32,16 +33,22 @@ func (e *Engine) Order(FIXMsg string) {
 		QuantityTotal:  fixOrder.Quantity,
 		QuantityFilled: 0,
 		TargetRate:     fixOrder.POVTargetProp,
-		MinRate:        e.order.TargetRate * 0.8,
-		MaxRate:        e.order.TargetRate * 1.2,
+		MinRate:        fixOrder.POVTargetProp * 8 / 10,
+		MaxRate:        fixOrder.POVTargetProp * 12 / 10,
 	}
 	fmt.Printf("Engine: Received client order: %v\n", e.order)
+	if e.currentQuote == nil {
+		return
+	}
 	e.algo.Process(e)
 }
 
 func (e *Engine) ReceiveEvent(event []string) {
 	evt := parser.ParseEvent(event)
 	e.updateStateOnEvent(evt, event[0])
+	if e.order == nil {
+		return
+	}
 	e.algo.Process(e)
 }
 
@@ -65,12 +72,28 @@ func (e *Engine) cancelOrderSlice(slice *models.OrderSlice) {
 }
 
 // helper to cancel all slices with given price
-func (e *Engine) cancelAllSlicesWithPrice(price int) {
+func (e *Engine) cancelAllSlicesWithPrice(price float64) {
 	for slice := range e.pendingOrderSlices {
 		if slice.Price != price {
 			continue
 		}
 		e.cancelOrderSlice(slice)
+	}
+}
+
+// helper to cancel all slices with price no-more-existent
+func (e *Engine) cancelNoMoreExistentPriceSlices() {
+	for slice := range e.pendingOrderSlices {
+		ok := false
+		for _, pq := range e.currentQuote.Bids {
+			if pq.Price == slice.Price {
+				ok = true
+				break
+			}
+		}
+		if !ok {
+			e.cancelOrderSlice(slice)
+		}
 	}
 }
 
@@ -104,4 +127,12 @@ func (e *Engine) AddPendingOrderSlice(slice *models.OrderSlice) {
 func (e *Engine) RemovePendingOrderSlice(slice *models.OrderSlice) {
 	delete(e.pendingOrderSlices, slice)
 	e.pendingOrderPQView[slice.Price] -= slice.Quantity
+}
+
+// setters for testing purposes
+func (e *Engine) SetVolume(volume int) {
+	e.volume = volume
+}
+func (e *Engine) SetOrderFilledQuantity(qty int) {
+	e.order.QuantityFilled = qty
 }

@@ -30,36 +30,39 @@ func (algo *POVAlgorithm) Process(e *Engine) {
 		}
 	} else if x > y*e.order.MaxRate { // ahead
 		for slice := range e.pendingOrderSlices {
-			e.exchange.CancelOrderSlice(slice)
-			delete(e.pendingOrderSlices, slice)
+			e.cancelOrderSlice(slice)
 		}
-	} else { // follow
-		quantityLeft := e.order.QuantityTotal - e.order.QuantityFilled
-		for _, pq := range e.currentQuote.Bids {
-			price := pq.Price
-			quantityThreshold := int(math.Round(float64(pq.Quantity) * e.order.TargetRate))
-			quantityPending := e.pendingOrderPQView[price] // TODO: Add nil check
-			quantityNeeded := quantityThreshold - quantityPending
-			if quantityNeeded < 0 {
-				e.cancelAllSlicesWithPrice(price)
-				quantityNeeded = quantityThreshold
-			}
-			if quantityLeft <= quantityNeeded {
-				e.NewOrderSlice(
-					&models.OrderSlice{
-						TimeStamp: e.currentTime,
-						Quantity:  quantityLeft,
-						Price:     price,
-					})
-				break
-			}
+		return
+	}
+	// follow
+	quantityLeft := e.order.QuantityTotal - e.order.QuantityFilled
+	for _, pq := range e.currentQuote.Bids {
+		price := pq.Price
+		quantityThreshold := int(math.Round(float64(pq.Quantity) * e.order.TargetRate))
+		quantityPending := e.pendingOrderPQView[price] // TODO: Add nil check
+		quantityNeeded := quantityThreshold - quantityPending
+		if quantityNeeded < 0 { // pending order too much for this price, cancel and (probably) place a new one
+			e.cancelAllSlicesWithPrice(price)
+			quantityNeeded = quantityThreshold
+		}
+		if quantityLeft <= quantityNeeded { // Qty left to order is too little
 			e.NewOrderSlice(
 				&models.OrderSlice{
 					TimeStamp: e.currentTime,
-					Quantity:  quantityNeeded,
+					Quantity:  quantityLeft,
 					Price:     price,
 				})
-			quantityLeft -= quantityNeeded
+			break
 		}
+		// Order a full level
+		e.NewOrderSlice(
+			&models.OrderSlice{
+				TimeStamp: e.currentTime,
+				Quantity:  quantityNeeded,
+				Price:     price,
+			})
+		quantityLeft -= quantityNeeded
 	}
+	// cancel those orders at no-more-existent prices
+	e.cancelNoMoreExistentPriceSlices()
 }
