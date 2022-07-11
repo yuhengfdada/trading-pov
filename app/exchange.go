@@ -3,6 +3,7 @@ package app
 import (
 	"allen/trading-pov/models"
 	"allen/trading-pov/parser"
+	"fmt"
 	"time"
 )
 
@@ -33,6 +34,7 @@ func (exch *Exchange) SetEngine(e *Engine) {
 }
 
 func (exch *Exchange) ReceiveEvent(event []string) {
+	fmt.Printf("Exchange: Received event: %v\n", event)
 	evt := parser.ParseEvent(event)
 	exch.updateStateOnEvent(evt, event[0])
 	for slice := range exch.pendingOrderSlices {

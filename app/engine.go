@@ -3,6 +3,7 @@ package app
 import (
 	"allen/trading-pov/models"
 	"allen/trading-pov/parser"
+	"allen/trading-pov/util"
 	"fmt"
 )
 
@@ -33,23 +34,32 @@ func (e *Engine) Order(FIXMsg string) {
 		QuantityTotal:  fixOrder.Quantity,
 		QuantityFilled: 0,
 		TargetRate:     fixOrder.POVTargetProp,
-		MinRate:        fixOrder.POVTargetProp * 8 / 10,
-		MaxRate:        fixOrder.POVTargetProp * 12 / 10,
+		MinRate:        util.RoundFloat(fixOrder.POVTargetProp * 8 / 10),
+		MaxRate:        util.RoundFloat(fixOrder.POVTargetProp * 12 / 10),
 	}
 	fmt.Printf("Engine: Received client order: %v\n", e.order)
 	if e.currentQuote == nil {
 		return
 	}
 	e.algo.Process(e)
+	fmt.Printf("Engine: Quantity to fill after this round: %v\n", e.order.QuantityTotal-e.order.QuantityFilled)
+	fmt.Printf("Engine: Pending order slices after this round: %v\n\n", e.pendingOrderPQView)
 }
 
 func (e *Engine) ReceiveEvent(event []string) {
+	if e.order.QuantityFilled == e.order.QuantityTotal {
+		fmt.Printf("Engine: Yay, completely filled client order!\n")
+		return
+	}
+	fmt.Printf("Engine: Received event: %v\n", event)
 	evt := parser.ParseEvent(event)
 	e.updateStateOnEvent(evt, event[0])
 	if e.order == nil {
 		return
 	}
 	e.algo.Process(e)
+	fmt.Printf("Engine: Quantity to fill after this round: %v\n", e.order.QuantityTotal-e.order.QuantityFilled)
+	fmt.Printf("Engine: Pending order slices after this round: %v\n\n", e.pendingOrderPQView)
 }
 
 func (e *Engine) updateStateOnEvent(evt interface{}, eventType string) {
@@ -64,7 +74,7 @@ func (e *Engine) updateStateOnEvent(evt interface{}, eventType string) {
 
 // cancel
 func (e *Engine) cancelOrderSlice(slice *models.OrderSlice) {
-	fmt.Printf("Engine: Cancelled slice: %v\n", slice)
+	fmt.Printf("Engine: Cancelled slice: %v@%v, ordered at timestamp %v\n", slice.Quantity, slice.Price, slice.TimeStamp)
 	// send cancel request to exchange
 	e.exchange.CancelOrderSlice(slice)
 	// clearup pending orders (an order must be pending if can be cancelled)
@@ -99,8 +109,11 @@ func (e *Engine) cancelNoMoreExistentPriceSlices() {
 
 // new
 func (e *Engine) NewOrderSlice(slice *models.OrderSlice) OrderResponse {
+	if slice.Price == 0 {
+		return ""
+	}
 	resp := e.exchange.NewOrderSlice(slice)
-	fmt.Printf("Engine: New slice: %v, response: %s\n", slice, resp)
+	fmt.Printf("Engine: New slice: %v@%v, response: %s\n", slice.Quantity, slice.Price, resp)
 	switch resp {
 	case ResponseFilled: // Filled immediately
 		e.OrderSliceFilled(slice, false)
@@ -111,10 +124,12 @@ func (e *Engine) NewOrderSlice(slice *models.OrderSlice) OrderResponse {
 }
 
 // consider reading from a channel, so that the exhcange don't have to include an *Engine field.
-// Q: Do our fills also increase the volume traded? Should be yes.
+// Q: Do our fills also increase the volume traded? Seems no.
 func (e *Engine) OrderSliceFilled(slice *models.OrderSlice, pending bool) {
-	e.volume += slice.Quantity
+	// e.volume += slice.Quantity
 	e.order.QuantityFilled += slice.Quantity
+	fmt.Printf("Engine: Slice filled!\n")
+	fmt.Printf("Filled: %v@%v, Cumulative Quantity: %v\n", slice.Quantity, slice.Price, e.order.QuantityFilled)
 	if pending {
 		e.RemovePendingOrderSlice(slice)
 	}
@@ -127,6 +142,9 @@ func (e *Engine) AddPendingOrderSlice(slice *models.OrderSlice) {
 func (e *Engine) RemovePendingOrderSlice(slice *models.OrderSlice) {
 	delete(e.pendingOrderSlices, slice)
 	e.pendingOrderPQView[slice.Price] -= slice.Quantity
+	if e.pendingOrderPQView[slice.Price] == 0 {
+		delete(e.pendingOrderPQView, slice.Price)
+	}
 }
 
 // setters for testing purposes
