@@ -66,10 +66,7 @@ func TestRealData(t *testing.T) {
 	order := makeFIXMsg("1", "10000", "10")
 	engine.Order(order)
 
-	for _, line := range lines {
-		exchange.ReceiveEvent(line)
-		engine.ReceiveEvent(line)
-	}
+	sendEvents(lines)
 }
 
 func TestRealDataLargeOrder(t *testing.T) {
@@ -78,8 +75,5 @@ func TestRealDataLargeOrder(t *testing.T) {
 	order := makeFIXMsg("1", "400000", "10")
 	engine.Order(order)
 
-	for _, line := range lines {
-		exchange.ReceiveEvent(line)
-		engine.ReceiveEvent(line)
-	}
+	sendEvents(lines)
 }

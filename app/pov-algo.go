@@ -26,8 +26,7 @@ func (algo *POVAlgorithm) Process(e *Engine) {
 	fmt.Printf("POV-Algo: Cumulative quantity: %v, Volume traded: %.0f, Behind threshold: %v, Ahead threshold: %v\n", qFilled, vTraded, behindThres, aheadThres)
 	if qFilled < behindThres { // behind
 		fmt.Printf("POV-Algo: We are behind. Creating aggressive slices...\n")
-		quantityToOrder := util.Min(int(math.Round(y*e.order.MinRate-x)), e.order.QuantityTotal-e.order.QuantityFilled)
-		// only create one slice @ best ask for now. Will change to use 3 levels.
+		quantityToOrder := util.Min(int(math.Round(behindThres-qFilled)), e.order.QuantityTotal-e.order.QuantityFilled)
 		for _, pq := range e.currentQuote.Asks {
 			if quantityToOrder <= 0 {
 				break

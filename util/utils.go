@@ -1,6 +1,7 @@
 package util
 
 import (
+	"allen/trading-pov/models"
 	"fmt"
 	"sort"
 	"strconv"
@@ -18,6 +19,9 @@ func Min(a, b int) int {
 }
 
 func EventToString(event []string) string {
+	if event == nil || len(event) < 4 {
+		return ""
+	}
 	res := ""
 	if event[0] == "Q" {
 		res += "Quote@"
@@ -54,5 +58,18 @@ func MapToString(mp map[float64]int) string {
 	if len(res) > 2 {
 		res = res[:len(res)-2]
 	}
+	return res
+}
+
+func OrderToString(order *models.Order) string {
+	res := ""
+	res += "Total Quantity: "
+	res += strconv.Itoa(order.QuantityTotal)
+	res += ", Target Rate: "
+	res += fmt.Sprintf("%f", order.TargetRate)
+	res += ", Min Rate: "
+	res += fmt.Sprintf("%f", order.MinRate)
+	res += ", Max Rate: "
+	res += fmt.Sprintf("%f", order.MaxRate)
 	return res
 }

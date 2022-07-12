@@ -16,6 +16,7 @@ type Engine struct {
 	volume             int
 	currentTime        int
 	currentQuote       *models.Quote
+	done               bool
 }
 
 func NewEngine(exchange *Exchange, algo Algorithm) *Engine {
@@ -25,6 +26,7 @@ func NewEngine(exchange *Exchange, algo Algorithm) *Engine {
 		pendingOrderSlices: make(map[*models.OrderSlice]int),
 		pendingOrderPQView: make(map[float64]int),
 		volume:             0,
+		done:               false,
 	}
 }
 
@@ -37,7 +39,7 @@ func (e *Engine) Order(FIXMsg string) {
 		MinRate:        util.RoundFloat(fixOrder.POVTargetProp * 8 / 10),
 		MaxRate:        util.RoundFloat(fixOrder.POVTargetProp * 12 / 10),
 	}
-	fmt.Printf("Engine: Received client order: %v\n", e.order)
+	fmt.Printf("Engine: Received client order: %v\n\n", util.OrderToString(e.order))
 	if e.currentQuote == nil {
 		return
 	}
@@ -48,7 +50,10 @@ func (e *Engine) Order(FIXMsg string) {
 
 func (e *Engine) ReceiveEvent(event []string) {
 	if e.order.QuantityFilled == e.order.QuantityTotal {
-		fmt.Printf("Engine: Yay, completely filled client order!\n")
+		if !e.done {
+			fmt.Printf("Engine: Yay, completely filled client order!\n")
+			e.done = true
+		}
 		return
 	}
 	fmt.Printf("Engine: Received event: %v\n", util.EventToString(event))
