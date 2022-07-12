@@ -53,15 +53,16 @@ func (algo *POVAlgorithm) Process(e *Engine) {
 		price := pq.Price
 		quantityThreshold := int(math.Round(float64(pq.Quantity) * e.order.TargetRate))
 		quantityPending := e.pendingOrderPQView[price] // TODO: Add nil check
-		quantityNeeded := quantityThreshold - quantityPending
+		quantityNeeded := util.Min(quantityThreshold-quantityPending, quantityLeft-quantityPending)
+
 		// 1. pending order exceeds (this price's tot Qty * Target Rate), due to quote changes
 		// 2. pending order exceeds quantityLeft, due to new fills
-		if quantityNeeded < 0 || quantityPending > quantityLeft {
+		if quantityNeeded < 0 {
 			e.cancelAllSlicesWithPrice(price)
 			quantityNeeded = quantityThreshold
 		}
 		// We're not ordering 0 Qty
-		if quantityNeeded == 0 || quantityLeft == 0 || quantityLeft == quantityPending {
+		if quantityNeeded == 0 || quantityLeft == 0 {
 			newQuantityPending := e.pendingOrderPQView[price]
 			quantityLeft -= newQuantityPending
 			continue

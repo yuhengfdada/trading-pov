@@ -51,7 +51,7 @@ func (e *Engine) ReceiveEvent(event []string) {
 		fmt.Printf("Engine: Yay, completely filled client order!\n")
 		return
 	}
-	fmt.Printf("Engine: Received event: %v\n", event)
+	fmt.Printf("Engine: Received event: %v\n", util.EventToString(event))
 	evt := parser.ParseEvent(event)
 	e.updateStateOnEvent(evt, event[0])
 	if e.order == nil {
@@ -59,7 +59,7 @@ func (e *Engine) ReceiveEvent(event []string) {
 	}
 	e.algo.Process(e)
 	fmt.Printf("Engine: Quantity to fill after this round: %v\n", e.order.QuantityTotal-e.order.QuantityFilled)
-	fmt.Printf("Engine: Pending order slices after this round: %v\n\n", e.pendingOrderPQView)
+	fmt.Printf("Engine: Pending order slices after this round: %v\n\n", util.MapToString(e.pendingOrderPQView))
 }
 
 func (e *Engine) updateStateOnEvent(evt interface{}, eventType string) {
