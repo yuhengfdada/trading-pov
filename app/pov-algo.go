@@ -65,20 +65,20 @@ func (algo *POVAlgorithm) Process(e *Engine) {
 			e.cancelAllSlicesWithPrice(price)
 			quantityNeeded = quantityThreshold
 		}
-		// We're not ordering 0 Qty
+		// We're not ordering 0 Qty, but we still update the quantity left to order
 		if quantityNeeded == 0 || quantityLeft == 0 {
 			newQuantityPending := e.pendingOrderPQView[price]
 			quantityLeft -= newQuantityPending
 			continue
 		}
-		if quantityLeft < quantityNeeded { // Qty left to order is too little (but not ordering 0 Qty)
+		if quantityLeft < quantityNeeded { // Qty left to order is too little
 			e.NewOrderSlice(
 				&models.OrderSlice{
 					TimeStamp: e.currentTime,
 					Quantity:  quantityLeft,
 					Price:     price,
 				})
-		} else { // Order a full level (but not ordering 0 Qty)
+		} else { // Order a full level
 			e.NewOrderSlice(
 				&models.OrderSlice{
 					TimeStamp: e.currentTime,
@@ -89,6 +89,6 @@ func (algo *POVAlgorithm) Process(e *Engine) {
 		newQuantityPending := e.pendingOrderPQView[price]
 		quantityLeft -= newQuantityPending
 	}
-	// cancel those orders at no-more-existent prices
+	// cancel those orders at no-more-existent prices (due to quote changes)
 	e.cancelNoMoreExistentPriceSlices()
 }

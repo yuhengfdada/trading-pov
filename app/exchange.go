@@ -30,6 +30,7 @@ func NewExchange() *Exchange {
 	}
 }
 
+// the exchange needs to know the engine to call it back
 func (exch *Exchange) SetEngine(e *Engine) {
 	exch.engine = e
 }
@@ -68,6 +69,7 @@ func (exch *Exchange) meetFillCriteria(slice *models.OrderSlice) bool {
 	return false
 }
 
+// for engine to call
 func (exch *Exchange) NewOrderSlice(slice *models.OrderSlice) OrderResponse {
 	if exch.meetFillCriteria(slice) {
 		return ResponseFilled
@@ -75,7 +77,6 @@ func (exch *Exchange) NewOrderSlice(slice *models.OrderSlice) OrderResponse {
 	exch.pendingOrderSlices[slice] = 1
 	return ResponseQueued
 }
-
 func (exch *Exchange) CancelOrderSlice(slice *models.OrderSlice) {
 	delete(exch.pendingOrderSlices, slice)
 }

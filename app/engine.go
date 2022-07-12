@@ -16,7 +16,6 @@ type Engine struct {
 	volume             int
 	currentTime        int
 	currentQuote       *models.Quote
-	done               bool
 }
 
 func NewEngine(exchange *Exchange, algo Algorithm) *Engine {
@@ -26,7 +25,6 @@ func NewEngine(exchange *Exchange, algo Algorithm) *Engine {
 		pendingOrderSlices: make(map[*models.OrderSlice]int),
 		pendingOrderPQView: make(map[float64]int),
 		volume:             0,
-		done:               false,
 	}
 }
 
@@ -49,11 +47,8 @@ func (e *Engine) Order(FIXMsg string) {
 }
 
 func (e *Engine) ReceiveEvent(event []string) {
-	if e.order.QuantityFilled == e.order.QuantityTotal {
-		if !e.done {
-			fmt.Printf("Engine: Yay, completely filled client order!\n")
-			e.done = true
-		}
+	if e.order != nil && e.order.QuantityFilled == e.order.QuantityTotal {
+		fmt.Printf("Engine: Yay, completely filled client order!\n")
 		return
 	}
 	fmt.Printf("Engine: Received event: %v\n", util.EventToString(event))
@@ -128,10 +123,8 @@ func (e *Engine) NewOrderSlice(slice *models.OrderSlice) OrderResponse {
 	return resp
 }
 
-// consider reading from a channel, so that the exhcange don't have to include an *Engine field.
-// Q: Do our fills also increase the volume traded? Seems no.
+// filled
 func (e *Engine) OrderSliceFilled(slice *models.OrderSlice, pending bool) {
-	// e.volume += slice.Quantity
 	e.order.QuantityFilled += slice.Quantity
 	fmt.Printf("Engine: Slice filled!\n")
 	fmt.Printf("Filled: %v@%v, Cumulative Quantity: %v\n", slice.Quantity, slice.Price, e.order.QuantityFilled)
@@ -140,6 +133,7 @@ func (e *Engine) OrderSliceFilled(slice *models.OrderSlice, pending bool) {
 	}
 }
 
+// helpers to manipulate pending order slice states
 func (e *Engine) AddPendingOrderSlice(slice *models.OrderSlice) {
 	e.pendingOrderSlices[slice] = 1
 	e.pendingOrderPQView[slice.Price] += slice.Quantity

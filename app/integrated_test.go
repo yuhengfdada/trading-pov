@@ -77,3 +77,17 @@ func TestRealDataLargeOrder(t *testing.T) {
 
 	sendEvents(lines)
 }
+
+func TestRealDataLateOrder(t *testing.T) {
+	lines := setup(t, "market_data.csv")
+
+	order := makeFIXMsg("1", "400000", "10")
+
+	for _, line := range lines {
+		if line[1] == "9169924" {
+			engine.Order(order)
+		}
+		exchange.ReceiveEvent(line)
+		engine.ReceiveEvent(line)
+	}
+}
