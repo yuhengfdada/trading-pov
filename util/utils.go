@@ -21,14 +21,20 @@ func EventToString(event []string) string {
 	res := ""
 	if event[0] == "Q" {
 		res += "Quote@"
+		res += event[1]
+		res += ", Bids: "
+		res += event[2]
+		res += ", Asks: "
+		res += event[3]
 	} else {
 		res += "Trade@"
+		res += event[1]
+		res += ", Price: "
+		res += event[2]
+		res += ", Quantity: "
+		res += event[3]
 	}
-	res += event[1]
-	res += ", Bids: "
-	res += event[2]
-	res += ", Asks: "
-	res += event[3]
+
 	return res
 }
 
@@ -45,6 +51,8 @@ func MapToString(mp map[float64]int) string {
 		res += fmt.Sprintf("%f", k)
 		res += ", "
 	}
-	res = res[:len(res)-2]
+	if len(res) > 2 {
+		res = res[:len(res)-2]
+	}
 	return res
 }

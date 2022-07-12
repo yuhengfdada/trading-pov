@@ -15,11 +15,16 @@ func NewPOVAlgorithm() *POVAlgorithm {
 }
 
 func (algo *POVAlgorithm) Process(e *Engine) {
-
 	x := float64(e.order.QuantityFilled)
 	y := float64(e.volume)
 
-	if util.RoundFloat(x) < util.RoundFloat(y*e.order.MinRate) { // behind
+	qFilled := util.RoundFloat(x)
+	vTraded := util.RoundFloat(y)
+	behindThres := util.RoundFloat(y * e.order.MinRate)
+	aheadThres := util.RoundFloat(y * e.order.MaxRate)
+
+	fmt.Printf("POV-Algo: Cumulative quantity: %v, Volume traded: %.0f, Behind threshold: %v, Ahead threshold: %v\n", qFilled, vTraded, behindThres, aheadThres)
+	if qFilled < behindThres { // behind
 		fmt.Printf("POV-Algo: We are behind. Creating aggressive slices...\n")
 		quantityToOrder := util.Min(int(math.Round(y*e.order.MinRate-x)), e.order.QuantityTotal-e.order.QuantityFilled)
 		// only create one slice @ best ask for now. Will change to use 3 levels.
@@ -39,7 +44,7 @@ func (algo *POVAlgorithm) Process(e *Engine) {
 			quantityToOrder -= pq.Quantity
 		}
 
-	} else if util.RoundFloat(x) > util.RoundFloat(y*e.order.MaxRate) { // ahead
+	} else if qFilled > aheadThres { // ahead
 		fmt.Printf("POV-Algo: We are ahead. Cancelling all slices...\n")
 		for slice := range e.pendingOrderSlices {
 			e.cancelOrderSlice(slice)
@@ -52,7 +57,7 @@ func (algo *POVAlgorithm) Process(e *Engine) {
 	for _, pq := range e.currentQuote.Bids {
 		price := pq.Price
 		quantityThreshold := int(math.Round(float64(pq.Quantity) * e.order.TargetRate))
-		quantityPending := e.pendingOrderPQView[price] // TODO: Add nil check
+		quantityPending := e.pendingOrderPQView[price]
 		quantityNeeded := util.Min(quantityThreshold-quantityPending, quantityLeft-quantityPending)
 
 		// 1. pending order exceeds (this price's tot Qty * Target Rate), due to quote changes

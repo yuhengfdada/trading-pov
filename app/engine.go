@@ -11,7 +11,7 @@ type Engine struct {
 	exchange           *Exchange
 	algo               Algorithm
 	order              *models.Order
-	pendingOrderSlices map[*models.OrderSlice]int // TODO: Add pending slices when creating orders
+	pendingOrderSlices map[*models.OrderSlice]int
 	pendingOrderPQView map[float64]int
 	volume             int
 	currentTime        int
