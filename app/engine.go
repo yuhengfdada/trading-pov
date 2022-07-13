@@ -11,8 +11,8 @@ type Engine struct {
 	exchange           *Exchange
 	algo               Algorithm
 	order              *models.Order
-	pendingOrderSlices map[*models.OrderSlice]int
-	pendingOrderPQView map[float64]int
+	pendingOrderSlices map[*models.OrderSlice]int // A set of pending order slices.
+	pendingOrderPQView map[float64]int            // Records the total quantity pending at every price level. Key: price, Value: quantity
 	volume             int
 	currentTime        int
 	currentQuote       *models.Quote

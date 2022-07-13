@@ -10,7 +10,7 @@ func ParseEvent(event []string) (interface{}, error) {
 	if event == nil {
 		return nil, errors.New("invalid event")
 	}
-	errMsg := "invalid event: " + strings.Join(event, "")
+	errMsg := "invalid event: " + strings.Join(event, ",")
 	if len(event) != 4 {
 		return nil, errors.New(errMsg)
 	}

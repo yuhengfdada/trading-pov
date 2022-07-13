@@ -44,12 +44,8 @@ func (exch *Exchange) ReceiveEvent(event []string) {
 	fmt.Printf("Exchange: Current Event: %v\n", util.EventToString(event))
 
 	exch.updateStateOnEvent(evt, event[0])
-	for slice := range exch.pendingOrderSlices {
-		if exch.meetFillCriteria(slice) {
-			exch.engine.OrderSliceFilled(slice, true)
-			delete(exch.pendingOrderSlices, slice) // deletion won't affect the iteration
-		}
-	}
+
+	exch.process()
 }
 
 func (exch *Exchange) updateStateOnEvent(evt interface{}, eventType string) {
@@ -58,6 +54,15 @@ func (exch *Exchange) updateStateOnEvent(evt interface{}, eventType string) {
 	} else {
 		exch.currentQuote = evt.(*models.Quote)
 		exch.currentTime = exch.currentQuote.Time
+	}
+}
+
+func (exch *Exchange) process() {
+	for slice := range exch.pendingOrderSlices {
+		if exch.meetFillCriteria(slice) {
+			exch.engine.OrderSliceFilled(slice, true)
+			delete(exch.pendingOrderSlices, slice) // deletion won't affect the iteration
+		}
 	}
 }
 

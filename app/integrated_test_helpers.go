@@ -46,12 +46,12 @@ func sendEvents(t *testing.T, lines [][]string) {
 }
 
 func checkInvariants(t *testing.T, e *Engine, exch *Exchange) {
-	if e.order != nil && e.order.QuantityFilled == e.order.QuantityTotal {
+	if e.order == nil || e.order.QuantityFilled == e.order.QuantityTotal {
 		return
 	}
 	// 1. Pending order slices should:
 	//   1.1 match the PQ view.
-	//   1.2 prices are lower than current best ask.
+	//   1.2 should not match fill criteria.
 	//   1.3 two pending slice sets in exchange and engine should be the same.
 	//   1.4 pending slices should not meet fill criteria.
 	PQView := make(map[float64]int)

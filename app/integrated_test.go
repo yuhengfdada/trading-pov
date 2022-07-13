@@ -62,6 +62,7 @@ func TestFills(t *testing.T) {
 		}
 		exchange.ReceiveEvent(line)
 		engine.ReceiveEvent(line)
+		checkInvariants(t, engine, exchange)
 	}
 }
 
@@ -105,6 +106,7 @@ func TestRealDataLateOrder(t *testing.T) {
 		}
 		exchange.ReceiveEvent(line)
 		engine.ReceiveEvent(line)
+		checkInvariants(t, engine, exchange)
 	}
 }
 
