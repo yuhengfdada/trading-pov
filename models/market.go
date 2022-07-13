@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 )
@@ -27,31 +28,59 @@ func NewPriceQuantity(price float64, quantity int) PriceQuantity {
 	}
 }
 
-func NewTrade(time, price, quantity string) *Trade {
-	t, _ := strconv.Atoi(time)
-	p, _ := strconv.ParseFloat(price, 64)
-	q, _ := strconv.Atoi(quantity)
+func NewTrade(time, price, quantity string) (*Trade, error) {
+	t, err := strconv.Atoi(time)
+	if err != nil {
+		return nil, err
+	}
+	p, err := strconv.ParseFloat(price, 64)
+	if err != nil {
+		return nil, err
+	}
+	q, err := strconv.Atoi(quantity)
+	if err != nil {
+		return nil, err
+	}
 	return &Trade{
 		Time: t,
 		PQ:   NewPriceQuantity(p, q),
-	}
+	}, nil
 }
 
-func NewQuote(time, bids, asks string) *Quote {
-	t, _ := strconv.Atoi(time)
+func NewQuote(time, bids, asks string) (*Quote, error) {
+	t, err := strconv.Atoi(time)
+	if err != nil {
+		return nil, err
+	}
 	quote := &Quote{
 		Time: t,
 	}
-	FillPQs(&quote.Bids, bids)
-	FillPQs(&quote.Asks, asks)
-	return quote
+	err = FillPQs(&quote.Bids, bids)
+	if err != nil {
+		return nil, err
+	}
+	err = FillPQs(&quote.Asks, asks)
+	if err != nil {
+		return nil, err
+	}
+	return quote, nil
 }
 
-func FillPQs(arr *[]PriceQuantity, str string) {
+func FillPQs(arr *[]PriceQuantity, str string) error {
 	nums := strings.Split(str, " ")
+	if len(nums)%2 == 1 {
+		return errors.New("bad bid or ask")
+	}
 	for i := 0; i < len(nums); i += 2 {
-		p, _ := strconv.ParseFloat(nums[i], 64)
-		q, _ := strconv.Atoi(nums[i+1])
+		p, err := strconv.ParseFloat(nums[i], 64)
+		if err != nil {
+			return err
+		}
+		q, err := strconv.Atoi(nums[i+1])
+		if err != nil {
+			return err
+		}
 		*arr = append(*arr, NewPriceQuantity(p, q))
 	}
+	return nil
 }

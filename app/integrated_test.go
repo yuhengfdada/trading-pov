@@ -107,3 +107,9 @@ func TestRealDataLateOrder(t *testing.T) {
 		engine.ReceiveEvent(line)
 	}
 }
+
+// test bad input for robustness
+func TestBadInput(t *testing.T) {
+	lines := setup(t, "bad_numbers.csv")
+	sendEvents(t, lines)
+}

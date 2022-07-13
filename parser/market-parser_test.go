@@ -2,6 +2,7 @@ package parser
 
 import (
 	"encoding/csv"
+	"fmt"
 	"os"
 	"reflect"
 	"testing"
@@ -10,11 +11,21 @@ import (
 )
 
 func TestParseEvent(t *testing.T) {
-	f, _ := os.Open("../datasets/numbers.csv")
+	f, err := os.Open("../datasets/bad_numbers.csv")
+	if err != nil {
+		t.Error(err)
+	}
 	r := csv.NewReader(f)
-	lines, _ := r.ReadAll()
+	lines, err := r.ReadAll()
+	if err != nil {
+		t.Error(err)
+	}
 	for _, line := range lines {
-		res := ParseEvent(line)
+		res, err := ParseEvent(line)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
 		if line[0] == "T" {
 			assert.Equal(t, "*models.Trade", reflect.TypeOf(res).String())
 		} else {

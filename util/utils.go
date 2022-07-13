@@ -19,8 +19,8 @@ func Min(a, b int) int {
 }
 
 func EventToString(event []string) string {
-	if event == nil || len(event) < 4 {
-		return ""
+	if event == nil || len(event) != 4 {
+		return "invalid event"
 	}
 	res := ""
 	if event[0] == "Q" {

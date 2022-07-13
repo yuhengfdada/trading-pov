@@ -51,8 +51,13 @@ func (e *Engine) ReceiveEvent(event []string) {
 		fmt.Printf("Engine: Yay, completely filled client order!\n")
 		return
 	}
+	evt, err := parser.ParseEvent(event)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	fmt.Printf("Engine: Received event: %v\n", util.EventToString(event))
-	evt := parser.ParseEvent(event)
+
 	e.updateStateOnEvent(evt, event[0])
 	if e.order == nil {
 		return

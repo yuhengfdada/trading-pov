@@ -36,8 +36,13 @@ func (exch *Exchange) SetEngine(e *Engine) {
 }
 
 func (exch *Exchange) ReceiveEvent(event []string) {
+	evt, err := parser.ParseEvent(event)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	fmt.Printf("Exchange: Current Event: %v\n", util.EventToString(event))
-	evt := parser.ParseEvent(event)
+
 	exch.updateStateOnEvent(evt, event[0])
 	for slice := range exch.pendingOrderSlices {
 		if exch.meetFillCriteria(slice) {
