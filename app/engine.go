@@ -29,7 +29,11 @@ func NewEngine(exchange *Exchange, algo Algorithm) *Engine {
 }
 
 func (e *Engine) Order(FIXMsg string) {
-	fixOrder := parser.ParseFIX(FIXMsg)
+	fixOrder, err := parser.ParseFIX(FIXMsg)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	e.order = &models.Order{
 		QuantityTotal:  fixOrder.Quantity,
 		QuantityFilled: 0,

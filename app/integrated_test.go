@@ -115,3 +115,13 @@ func TestBadInput(t *testing.T) {
 	lines := setup(t, "bad_numbers.csv")
 	sendEvents(t, lines)
 }
+
+func TestBadOrder(t *testing.T) {
+	setup(t, "bad_numbers.csv")
+	order := makeFIXMsg("1", "-400000", "10")
+	engine.Order(order)
+	order = makeFIXMsg("2", "40000", "10")
+	engine.Order(order)
+	order = makeFIXMsg("1", "400000", "0")
+	engine.Order(order)
+}
