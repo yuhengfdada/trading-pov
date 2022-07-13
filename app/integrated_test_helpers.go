@@ -1,9 +1,12 @@
 package app
 
 import (
+	"allen/trading-pov/util"
 	"encoding/csv"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -34,9 +37,41 @@ func makeFIXMsg(buy, quantity, percentage string) string {
 	return res
 }
 
-func sendEvents(lines [][]string) {
+func sendEvents(t *testing.T, lines [][]string) {
 	for _, line := range lines {
 		exchange.ReceiveEvent(line)
 		engine.ReceiveEvent(line)
+		checkInvariants(t, engine, exchange)
 	}
+}
+
+func checkInvariants(t *testing.T, e *Engine, exch *Exchange) {
+	if e.order != nil && e.order.QuantityFilled == e.order.QuantityTotal {
+		return
+	}
+	// 1. Pending order slices should:
+	//   1.1 match the PQ view.
+	//   1.2 prices are lower than current best ask.
+	//   1.3 two pending slice sets in exchange and engine should be the same.
+	//   1.4 pending slices should not meet fill criteria.
+	PQView := make(map[float64]int)
+
+	for slice := range e.pendingOrderSlices {
+		PQView[slice.Price] += slice.Quantity
+		if slice.Price >= e.currentQuote.Asks[0].Price {
+			t.Fail()
+		}
+		if _, ok := exch.pendingOrderSlices[slice]; !ok {
+			t.Fail()
+		}
+	}
+	for slice := range exch.pendingOrderSlices {
+		if _, ok := e.pendingOrderSlices[slice]; !ok {
+			t.Fail()
+		}
+		if exch.meetFillCriteria(slice) {
+			t.Fail()
+		}
+	}
+	assert.Equal(t, util.MapToString(e.pendingOrderPQView), util.MapToString(PQView))
 }

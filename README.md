@@ -22,7 +22,9 @@ func TestBehindMin(t *testing.T) {
 1. Put your own dataset in the `datasets` folder.
 2. Create a function like the sample inside `app/integrated_test.go`.
 3. Change `behindmin.csv` to your own dataset.
-4. Create your own client order by modifying the parameters to `makeFIXMsg`. You can also change when the order arrive; see `TestRealDataLateOrder()` in `app/integrated_test.go`.
+4. Create your own client order by modifying the parameters to `makeFIXMsg`.
+    
+   **Additional Feature** You can also change when the order arrives; it can be any point of time. See `TestRealDataLateOrder()` in `app/integrated_test.go`.
 5. You can also set the engine's state before sending events to it (if you want).
 6. Inside the `app` directory, run `go test -run ^your_test_function$ > logs`.
 7. See the test output in `app/logs`.

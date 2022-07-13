@@ -147,9 +147,9 @@ func (e *Engine) RemovePendingOrderSlice(slice *models.OrderSlice) {
 }
 
 // setters for testing purposes
-func (e *Engine) SetVolume(volume int) {
+func (e *Engine) setVolume(volume int) {
 	e.volume = volume
 }
-func (e *Engine) SetOrderFilledQuantity(qty int) {
+func (e *Engine) setOrderFilledQuantity(qty int) {
 	e.order.QuantityFilled = qty
 }
