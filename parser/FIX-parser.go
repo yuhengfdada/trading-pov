@@ -48,7 +48,7 @@ func ParseFIX(FIXMsg string) (*models.FIXOrder, error) {
 	if ok != 3 {
 		return nil, errors.New(errMsg)
 	}
-	if !res.Buy || res.POVTargetProp <= 0 || res.POVTargetProp*1.2 > 100 || res.Quantity <= 0 {
+	if !res.Buy || res.POVTargetProp <= 0 || res.POVTargetProp*1.2 > 1 || res.Quantity <= 0 {
 		return nil, errors.New(errMsg)
 	}
 	return res, nil

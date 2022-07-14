@@ -60,8 +60,13 @@ func TestFills(t *testing.T) {
 		if line[1] == "20000" {
 			engine.setVolume(5000)
 		}
-		exchange.ReceiveEvent(line)
-		engine.ReceiveEvent(line)
+		eventExecutionReport := exchange.ReceiveEvent(line)
+		engine.ReceiveReport(eventExecutionReport)
+
+		executions := engine.ReceiveEvent(line)
+		orderExecutionReport := exchange.ReceiveExecutions(executions)
+		engine.ReceiveReport(orderExecutionReport)
+
 		checkInvariants(t, engine, exchange)
 	}
 }
@@ -69,10 +74,10 @@ func TestFills(t *testing.T) {
 // behind a lot, ordering all levels of ask
 func TestLargeBehind(t *testing.T) {
 	lines := setup(t, "largebehind.csv")
-	order := makeFIXMsg("1", "100000", "100")
+	order := makeFIXMsg("1", "100000", "50")
 	engine.Order(order)
 
-	engine.setVolume(20000)
+	engine.setVolume(200000)
 
 	sendEvents(t, lines)
 }
@@ -93,21 +98,6 @@ func TestRealDataLargeOrder(t *testing.T) {
 	engine.Order(order)
 
 	sendEvents(t, lines)
-}
-
-func TestRealDataLateOrder(t *testing.T) {
-	lines := setup(t, "market_data.csv")
-
-	order := makeFIXMsg("1", "400000", "10")
-
-	for _, line := range lines {
-		if line[1] == "9169924" {
-			engine.Order(order)
-		}
-		exchange.ReceiveEvent(line)
-		engine.ReceiveEvent(line)
-		checkInvariants(t, engine, exchange)
-	}
 }
 
 // test bad input for robustness

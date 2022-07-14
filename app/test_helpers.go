@@ -11,7 +11,7 @@ import (
 
 var (
 	exchange *Exchange
-	algo     Algorithm
+	algo     *POVAlgorithm
 	engine   *Engine
 )
 
@@ -27,8 +27,7 @@ func setup(t *testing.T, dataset string) [][]string {
 	}
 	exchange = NewExchange()
 	algo = NewPOVAlgorithm()
-	engine = NewEngine(exchange, algo)
-	exchange.SetEngine(engine)
+	engine = NewEngine(algo)
 	return lines
 }
 
@@ -39,8 +38,13 @@ func makeFIXMsg(buy, quantity, percentage string) string {
 
 func sendEvents(t *testing.T, lines [][]string) {
 	for _, line := range lines {
-		exchange.ReceiveEvent(line)
-		engine.ReceiveEvent(line)
+		eventExecutionReport := exchange.ReceiveEvent(line)
+		engine.ReceiveReport(eventExecutionReport)
+
+		executions := engine.ReceiveEvent(line)
+		orderExecutionReport := exchange.ReceiveExecutions(executions)
+		engine.ReceiveReport(orderExecutionReport)
+
 		checkInvariants(t, engine, exchange)
 	}
 }
