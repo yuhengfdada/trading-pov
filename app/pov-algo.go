@@ -57,8 +57,6 @@ func (algo *POVAlgorithm) follow(e *Engine, execution *models.Execution, quantit
 
 		// 1. pending order exceeds (this price's tot Qty * Target Rate), due to quote changes
 		// 2. pending order exceeds quantityLeft, due to new fills
-		// 100 100 200 9.9    200
-		//
 		if quantityNeeded < 0 {
 			e.cancelAllSlicesWithPrice(price, execution)
 			tempPendingOrderPQView[price] = 0

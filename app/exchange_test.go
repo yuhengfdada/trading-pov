@@ -45,9 +45,9 @@ func TestProcessPartialFills(t *testing.T) {
 	exchange.pendingOrderSlices[slice2] = 1
 	exchange.pendingOrderSlices[slice3] = 1
 	report := exchange.ReceiveEvent([]string{"Q", "10000", "9.8 2000", "10.0 200"})
+	assert.Len(t, report.SlicesFilled, 2)
 	assert.Equal(t, report.SlicesFilled[0], slice1)
 	assert.Equal(t, report.SlicesFilled[1], slice2)
-
 }
 
 func TestReceiveExecutions(t *testing.T) {
