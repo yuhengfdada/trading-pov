@@ -55,7 +55,7 @@ func (e *Engine) ReceiveEvent(event []string) *models.Execution {
 	fmt.Printf("Engine: Received event: %v\n", util.EventToString(event))
 
 	e.updateStateOnEvent(evt, event[0])
-	if e.order == nil {
+	if e.order == nil || e.currentQuote == nil {
 		return nil
 	}
 	res := e.algo.Process(e)

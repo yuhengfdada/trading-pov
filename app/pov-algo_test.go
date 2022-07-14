@@ -24,12 +24,14 @@ func TestBehindUnit(t *testing.T) {
 	engine = NewEngine(algo)
 	engine.ReceiveEvent([]string{"Q", "10000", "10.0 5000 9.9 4000 9.8 2000", "10.1 2000 10.2 10000"})
 	execution := &models.Execution{}
-	algo.behind(engine, execution, 10000)
+	newlyFilled := algo.behind(engine, execution, 10000)
+	assert.Equal(t, newlyFilled, 10000)
 	assert.Equal(t, models.OrderSlice{TimeStamp: 10000, Quantity: 2000, Price: 10.1}, *(execution.SlicesToOrder[0]))
 	assert.Equal(t, models.OrderSlice{TimeStamp: 10000, Quantity: 8000, Price: 10.2}, *(execution.SlicesToOrder[1]))
 
 	execution = &models.Execution{}
-	algo.behind(engine, execution, 100000)
+	newlyFilled = algo.behind(engine, execution, 100000)
+	assert.Equal(t, newlyFilled, 12000)
 	assert.Equal(t, models.OrderSlice{TimeStamp: 10000, Quantity: 2000, Price: 10.1}, *(execution.SlicesToOrder[0]))
 	assert.Equal(t, models.OrderSlice{TimeStamp: 10000, Quantity: 10000, Price: 10.2}, *(execution.SlicesToOrder[1]))
 }

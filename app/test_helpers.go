@@ -1,6 +1,7 @@
 package app
 
 import (
+	"allen/trading-pov/models"
 	"allen/trading-pov/util"
 	"encoding/csv"
 	"os"
@@ -62,19 +63,18 @@ func checkInvariants(t *testing.T, e *Engine, exch *Exchange) {
 
 	for slice := range e.pendingOrderSlices {
 		PQView[slice.Price] += slice.Quantity
-		if slice.Price >= e.currentQuote.Asks[0].Price {
-			t.Fail()
-		}
 		if _, ok := exch.pendingOrderSlices[slice]; !ok {
-			t.Fail()
+			t.FailNow()
 		}
 	}
+	var copyAsks []models.PriceQuantity
+	copyAsks = append(copyAsks, exchange.currentQuote.Asks...)
 	for slice := range exch.pendingOrderSlices {
 		if _, ok := e.pendingOrderSlices[slice]; !ok {
-			t.Fail()
+			t.FailNow()
 		}
-		if exch.meetFillCriteria(slice) {
-			t.Fail()
+		if exch.meetFillCriteria(slice, copyAsks) {
+			t.FailNow()
 		}
 	}
 	assert.Equal(t, util.MapToString(e.pendingOrderPQView), util.MapToString(PQView))

@@ -71,6 +71,26 @@ func TestFills(t *testing.T) {
 	}
 }
 
+// Ask quantity is not enough. Do not fill, even there is a slice with best ask price.
+// Notice how the 2500@10 slice did not get filled at the beginning of time 20000
+func TestPassiveFillNotEnoughAsk(t *testing.T) {
+	lines := setup(t, "notEnoughAsk.csv")
+	order := makeFIXMsg("1", "100000", "50")
+	engine.Order(order)
+
+	engine.setVolume(200000)
+
+	sendEvents(t, lines)
+}
+
+func TestPassiveFillPartialNotEnoughAsk(t *testing.T) {
+	lines := setup(t, "notEnoughAsk.csv")
+	order := makeFIXMsg("1", "100000", "50")
+	engine.Order(order)
+
+	sendEvents(t, lines)
+}
+
 // behind a lot, ordering all levels of ask
 func TestLargeBehind(t *testing.T) {
 	lines := setup(t, "largebehind.csv")
