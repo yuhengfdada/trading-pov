@@ -5,22 +5,32 @@ Exchange: Current Event: Quote@10000, Bids: 10.0 5000 9.9 4000 9.8 2000, Asks: 1
 Engine: Received event: Quote@10000, Bids: 10.0 5000 9.9 4000 9.8 2000, Asks: 10.1 2000 10.2 10000
 POV-Algo: Cumulative quantity: 0, Volume traded: 0, Behind threshold: 0, Ahead threshold: 0
 POV-Algo: Rebalancing passive order slices...
-Engine: New slice: 500@10, response: queued
-Engine: New slice: 400@9.9, response: queued
-Engine: New slice: 100@9.8, response: queued
-Engine: Quantity to fill after this round: 1000
-Engine: Pending order slices after this round: 500@10.000000, 400@9.900000, 100@9.800000
+Engine: New slice: 500@10
+Engine: New slice: 400@9.9
+Engine: New slice: 100@9.8
+#### Got Response From the Exchange ####
+Engine: Queued slice: 500@10, ordered at timestamp 10000
+Engine: Queued slice: 400@9.9, ordered at timestamp 10000
+Engine: Queued slice: 100@9.8, ordered at timestamp 10000
+Engine: Quantity to fill after this execution: 1000
+Engine: Pending order slices after this execution: 500@10.000000, 400@9.900000, 100@9.800000
 
 Exchange: Current Event: Quote@20000, Bids: 10.1 2000 10.0 6000 9.9 2000, Asks: 10.2 10000
 Engine: Received event: Quote@20000, Bids: 10.1 2000 10.0 6000 9.9 2000, Asks: 10.2 10000
 POV-Algo: Cumulative quantity: 0, Volume traded: 0, Behind threshold: 0, Ahead threshold: 0
 POV-Algo: Rebalancing passive order slices...
-Engine: New slice: 200@10.1, response: queued
-Engine: New slice: 100@10, response: queued
+Engine: New slice: 200@10.1
+Engine: New slice: 100@10
+Engine: Cancelling slice: 400@9.9, ordered at timestamp 10000
+Engine: New slice: 200@9.9
+Engine: Cancelling slice: 100@9.8, ordered at timestamp 10000
+#### Got Response From the Exchange ####
 Engine: Cancelled slice: 400@9.9, ordered at timestamp 10000
-Engine: New slice: 200@9.9, response: queued
 Engine: Cancelled slice: 100@9.8, ordered at timestamp 10000
-Engine: Quantity to fill after this round: 1000
-Engine: Pending order slices after this round: 200@10.100000, 600@10.000000, 200@9.900000
+Engine: Queued slice: 200@10.1, ordered at timestamp 20000
+Engine: Queued slice: 100@10, ordered at timestamp 20000
+Engine: Queued slice: 200@9.9, ordered at timestamp 20000
+Engine: Quantity to fill after this execution: 1000
+Engine: Pending order slices after this execution: 200@10.100000, 600@10.000000, 200@9.900000
 
 --- PASS: TestFollow (0.00s)
